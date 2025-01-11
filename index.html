@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Voting System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+        .candidate-container {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="bg-primary text-white text-center py-4">
+        <h1>Online Voting System</h1>
+    </header>
+
+    <main class="container py-5">
+        <!-- Login Section -->
+        <div id="login-container" class="card mx-auto shadow-sm p-4" style="max-width: 500px;">
+            <h2 class="text-center mb-4">Login</h2>
+            <form id="login-form">
+                <div class="mb-3">
+                    <label for="role" class="form-label">Login as:</label>
+                    <select id="role" name="role" class="form-select" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username:</label>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password:</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="admin-panel" class="card mx-auto shadow-sm p-4 hidden" style="max-width: 500px;">
+            <h2 class="text-center mb-4">Admin Panel</h2>
+            <div class="mb-3">
+                <button class="btn btn-success" id="create-election-btn">Create Election</button>
+                <button class="btn btn-warning" id="manage-election-btn" style="margin-left: 10px;">Manage Election</button>
+            </div>
+        </div>
+
+        <!-- User Panel -->
+        <!-- User Panel -->
+<div id="user-panel" class="card mx-auto shadow-sm p-4 hidden" style="max-width: 500px;">
+    <h2 class="text-center mb-4">User Panel</h2>
+    
+    <!-- Upload Aadhar XML -->
+    <form id="aadhar-upload-form">
+        <div class="form-group">
+            <label for="aadhar-file">Upload Aadhar XML</label>
+            <input type="file" id="aadhar-file" class="form-control" accept=".xml" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Upload Aadhar</button>
+    </form>
+
+    <div id="voter-info" class="mt-4">
+        <p id="voter-name"></p>
+        <button id="vote-btn" class="btn btn-success hidden">Vote</button>
+    </div>
+</div>
+
+        <!-- Election Creation Section -->
+        <div id="create-election-container" class="card mx-auto shadow-sm p-4 hidden" style="max-width: 500px;">
+            <h2 class="text-center mb-4">Create Election</h2>
+            <form id="create-election-form" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="election_name" class="form-label">Election Name:</label>
+                    <input type="text" id="election_name" name="election_name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="election_date" class="form-label">Election Date:</label>
+                    <input type="date" id="election_date" name="election_date" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="voter_list" class="form-label">Voter List (PDF):</label> <!-- Updated to PDF -->
+                    <input type="file" id="voter_list" name="voter_list_pdf" accept=".pdf,.csv" class="form-control" required> <!-- Updated field name -->
+                </div>
+                <div id='candidate-container'>
+                    <h5 class='text-center'>Add Candidates</h5>
+                    <div class='candidate-container'>
+                        <label for='candidate_name' class='form-label'>Candidate Name:</label>
+                        <input type='text' class='form-control' name='candidate_name[]' required />
+                        <label for='party_name' class='form-label'>Party Name:</label>
+                        <input type='text' class='form-control' name='party_name[]' required />
+                        <label for='party_logo' class='form-label'>Party Logo:</label>
+                        <input type='file' accept='image/*' name='party_logo[]' required />
+                    </div>
+                    <!-- Button to add more candidates -->
+                    <button type='button' id='add-candidate-btn' class='btn btn-secondary'>Add More Candidates</button>
+                </div>
+
+                <!-- Submit button -->
+                <div class='d-grid'>
+                    <button type='submit' class='btn btn-primary'>Create Election</button>
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- Manage Election Section -->
+        ...
+        
+    </main>
+
+    <!-- JavaScript Section -->
+    <script>
+
+        // Show respective panels after login
+        document.getElementById("login-form").addEventListener("submit", async function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const role = document.getElementById("role").value;
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await axios.post(`/login/${role}`, {
+                    username: username,
+                    password: password
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 200) {
+                    document.getElementById("login-container").classList.add("hidden");
+                    if (role === "admin") {
+                        document.getElementById("admin-panel").classList.remove("hidden");
+                    } else {
+                        document.getElementById("user-panel").classList.remove("hidden");
+                    }
+
+                    if (role==='user')
+                    {
+                        document.getElementById("user-panel").classList.remove("hidden");
+                    }
+                }
+            } catch (error) {
+                console.error('Login error:', error.response?.data || error.message);
+                alert(`Login failed: ${error.response?.data?.message || error.message}`);
+            }
+        });
+
+        // Show election creation form when admin clicks the "Create Election"
+        document.getElementById("create-election-btn").addEventListener("click", function () {
+            document.getElementById("admin-panel").classList.add("hidden");
+            document.getElementById("create-election-container").classList.remove("hidden");
+        });
+
+        // Handle election form submission
+        document.getElementById("create-election-form").addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const electionName = document.getElementById("election_name").value;
+            const electionDate = document.getElementById("election_date").value;
+            const voterListFile = document.getElementById("voter_list").files[0];
+
+            // Validate that the voter list file is provided
+            if (!voterListFile) {
+                alert('Voter list PDF is required');
+                return;
+            }
+
+            const candidateNames = document.getElementsByName("candidate_name[]");
+            const partyNames = document.getElementsByName("party_name[]");
+            const partyLogos = document.getElementsByName("party_logo[]");
+
+            const formData = new FormData();
+            formData.append("election_name", electionName);
+            formData.append("election_date", electionDate);
+            formData.append("voter_list_pdf", voterListFile); // Ensure correct field name
+
+            // Append candidates
+            for (let i = 0; i < candidateNames.length; i++) {
+                formData.append(`candidates[${i}][name]`, candidateNames[i].value);
+                formData.append(`candidates[${i}][party_name]`, partyNames[i].value);
+                
+                if (partyLogos[i].files[0]) {
+                    formData.append(`candidates[${i}][party_logo]`, partyLogos[i].files[0]);
+                }
+            }
+
+            try {
+                const response = await axios.post('/api/create-election', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+
+                if (response.status === 201) {
+                    alert('Election created successfully!');
+                    document.getElementById("create-election-container").classList.add("hidden");
+                    document.getElementById("admin-panel").classList.remove("hidden");
+                }
+            } catch (error) {
+                console.error('Error creating election:', error);
+                alert('Failed to create election.');
+            }
+        });
+
+        // Add more candidates dynamically
+        document.getElementById("add-candidate-btn").addEventListener("click", function () {
+            const newCandidateContainer = document.createElement('div');
+            newCandidateContainer.classList.add('candidate-container');
+            
+            newCandidateContainer.innerHTML = `
+                <label for='candidate_name' class='form-label'>Candidate Name:</label>
+                <input type='text' class='form-control' name='candidate_name[]' required />
+                
+                <label for='party_name' class='form-label'>Party Name:</label>
+                <input type='text' class='form-control' name='party_name[]' required />
+                
+                <label for='party_logo' class='form-label'>Party Logo:</label>
+                <input type='file' accept='image/*' name='party_logo[]' required />
+            `;
+            
+            document.getElementById('candidate-container').appendChild(newCandidateContainer);
+        });
+
+    </script>
+
+</body>
+
+</html>
